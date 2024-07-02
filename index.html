@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Personality Creator</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="scripts/EyeData.js"></script>
+    <script src="scripts/HairData.js"></script>
+    <script src="scripts/BodyData.js"></script>
+    <script src="scripts/CharacterData.js"></script>
+    <script src="scripts/LifeData.js"></script>
+    <!-- Add other data files as needed -->
+</head>
+<body>
+    <h1>Create Your Character</h1>
+<!-- Add this at the beginning of the body, before the name input -->
+<br><label for="nsfwToggle">Show NSFW content:</label>
+<input type="checkbox" id="nsfwToggle" onchange="toggleNSFWContent()">
+<!-- Name Input -->
+<br><label for="nameInput">Name:</label>
+<input type="text" id="nameInput" placeholder="Enter character name">
+
+<!-- Age Input -->
+<br><label for="ageInput">Age:</label>
+<input type="number" id="ageInput" min="0" value="18">
+
+<!-- Eye Color Section -->
+<br><button onclick="toggleSection('eyeColorSection')">Show/Hide Eye Colors</button>
+<div id="eyeColorSection" class="column3" style="display: none;"></div>
+
+<!-- Hair Color Section -->
+<br><button onclick="toggleSection('hairColorSection')">Show/Hide Hair Colors</button>
+<div id="hairColorSection" class="column3" style="display: none;"></div>
+
+<!-- Hair Type Section -->
+<br><button onclick="toggleSection('hairTypeSection')">Show/Hide Hair Types</button>
+<div id="hairTypeSection" class="column3" style="display: none;"></div>
+
+<!-- Body Type Section -->
+<br><button onclick="toggleSection('bodyTypeSection')">Show/Hide Body Types</button>
+<div id="bodyTypeSection" class="column3" style="display: none;"></div>
+
+<!-- Breasts Type Section -->
+<br><button onclick="toggleSection('breastsTypeSection')">Show/Hide Breasts Types</button>
+<div id="breastsTypeSection" class="column3" style="display: none;"></div>
+
+<!-- Butt Type Section -->
+<br><button onclick="toggleSection('buttTypeSection')">Show/Hide Butt Types</button>
+<div id="buttTypeSection" class="column3" style="display: none;"></div>
+
+<!-- Personality Section -->
+<br><button onclick="toggleSection('personalitySection')">Show/Hide Personalities</button>
+<div id="personalitySection" class="column5" style="display: none;"></div>
+
+<!-- Relationship Section -->
+<br><button onclick="toggleSection('relationshipSection')">Show/Hide Relationships</button>
+<div id="relationshipSection" class="column5" style="display: none;"></div>
+
+<!-- Job Section -->
+<br><button onclick="toggleSection('jobSection')">Show/Hide Jobs</button>
+<div id="jobSection" class="column5" style="display: none;"></div>
+
+<!-- Hobbies Section -->
+<br><button onclick="toggleSection('hobbiesSection')">Show/Hide Hobbies</button>
+<div id="hobbiesSection" class="column5" style="display: none;"></div>
+
+<!-- Clothing Section -->
+<br><button onclick="toggleSection('clothingSection')">Show/Hide Clothing Styles</button>
+<div id="clothingSection" class="column3" style="display: none;"></div>
+
+<h1>OUTPUT 1:</h1>
+<div id="characterOutput1" class="Output"></div>
+
+
+<h1>OUTPUT 2:</h1>
+<div id="characterOutput2" class="Output"></div>
+
+    <script>
+        // Load data from EyeColors.js, HairData.js, and BodyData.js
+const loadScript = (src) => {
+    const script = document.createElement("script");
+    script.src = src;
+    document.head.appendChild(script);
+};
+
+// Declare these variables globally
+let selectedTrait = [];
+let selectedDescription = [];
+let isNSFWEnabled = false;
+
+// Object to store selection limits for each category
+const selectionLimits = {
+    'eyeColorSection': 1,
+    'hairColorSection': 1,
+    'hairTypeSection': 1,
+    'bodyTypeSection': 1,
+    'breastsTypeSection': 1,
+    'buttTypeSection': 1,
+    'personalitySection': 5,
+    'relationshipSection': 1,
+    'jobSection': 1,
+    'hobbiesSection': 3,
+    'clothingSection': 1
+};
+
+// Function to toggle NSFW content
+function toggleNSFWContent() {
+    isNSFWEnabled = document.getElementById('nsfwToggle').checked;
+    updateAllSections();
+}
+
+// Function to toggle section visibility
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+// Function to handle checkbox selection with limits
+function handleCheckboxSelection(checkbox, sectionId) {
+    const limit = selectionLimits[sectionId];
+    const checkboxes = document.querySelectorAll(`#${sectionId} input[type="checkbox"]`);
+    const checkedBoxes = document.querySelectorAll(`#${sectionId} input[type="checkbox"]:checked`);
+
+    if (checkbox.checked && checkedBoxes.length > limit) {
+        checkbox.checked = false;
+    } else if (limit === 1 && checkbox.checked) {
+        checkboxes.forEach(cb => {
+            if (cb !== checkbox) cb.checked = false;
+        });
+    }
+}
+
+// Function to create checkbox lists
+function createCheckboxList(data, sectionId, updateFunction) {
+    const section = document.getElementById(sectionId);
+    section.innerHTML = ''; // Clear existing content
+    data.forEach(item => {
+        const isNSFW = item.startsWith('*');
+        if (!isNSFWEnabled && isNSFW) return; // Skip NSFW items if not enabled
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = item.replace(/\s+/g, '');
+        checkbox.value = item;
+        checkbox.addEventListener('change', (e) => {
+            handleCheckboxSelection(e.target, sectionId);
+            updateFunction();
+        });
+
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = isNSFW ? item.substring(1) : item; // Remove * for display
+
+        section.appendChild(checkbox);
+        section.appendChild(label);
+        section.appendChild(document.createElement('br'));
+    });
+}
+
+// Function to update all sections
+function updateAllSections() {
+    createCheckboxList(eyeColors, 'eyeColorSection', updateOutput);
+    createCheckboxList(hairColors, 'hairColorSection', updateOutput);
+    createCheckboxList(hairTypes, 'hairTypeSection', updateOutput);
+    createCheckboxList(bodyTypes, 'bodyTypeSection', updateOutput);
+    createCheckboxList(breastsTypes, 'breastsTypeSection', updateOutput);
+    createCheckboxList(buttTypes, 'buttTypeSection', updateOutput);
+    createCheckboxList(personalities, 'personalitySection', updateTraitsAndDescription);
+    createCheckboxList(relationship, 'relationshipSection', updateOutput);
+    createCheckboxList(job, 'jobSection', updateOutput);
+    createCheckboxList(hobbies, 'hobbiesSection', updateOutput);
+    createCheckboxList(clothing, 'clothingSection', updateOutput);
+    updateOutput();
+}
+
+function getCheckedValues(sectionId) {
+    const checkboxes = document.querySelectorAll(`#${sectionId} input[type="checkbox"]:checked`);
+    return Array.from(checkboxes).map(cb => cb.value).join(', ');
+}
+
+function updateTraitsAndDescription() {
+    const selectedPersonalities = getCheckedValues('personalitySection').split(', ');
+    
+    selectedTrait = [];
+    selectedDescription = [];
+
+    selectedPersonalities.forEach(personality => {
+        const cleanPersonality = personality.startsWith('*') ? personality.substring(1) : personality;
+        const personalityIndex = personalities.indexOf(personality);
+        if (personalityIndex >= 0 && personalityIndex < traits.length && personalityIndex < description.length) {
+            selectedTrait.push(traits[personalityIndex].replace("*", ''));
+            selectedDescription.push(description[personalityIndex].replace("*", ''));
+        }
+    });
+
+    if (selectedTrait.length === 0) {
+        selectedTrait = ["Unknown trait"];
+        selectedDescription = ["Unknown description"];
+    }
+
+    updateOutput();
+}
+
+function updateOutput() {
+    const name = document.getElementById('nameInput').value;
+    const age = document.getElementById('ageInput').value;
+    const eyeColor = getCheckedValues('eyeColorSection');
+    const hairColor = getCheckedValues('hairColorSection');
+    const hairType = getCheckedValues('hairTypeSection');
+    const bodyType = getCheckedValues('bodyTypeSection');
+    const breastsType = getCheckedValues('breastsTypeSection');
+    const buttType = getCheckedValues('buttTypeSection');
+    const personality = getCheckedValues('personalitySection');
+    const relationship = getCheckedValues('relationshipSection');
+    const job = getCheckedValues('jobSection').replace("*", '');
+    const hobbies = getCheckedValues('hobbiesSection');
+    const clothing = getCheckedValues('clothingSection').replace("*", '');
+
+    const cleanPersonality = personality.split(', ').map(p => p.startsWith('*') ? p.substring(1) : p).join(', ');
+    const cleanHobbies = hobbies.split(', ').map(p => p.startsWith('*') ? p.substring(1) : p).join(', ');
+
+    const output1 = `
+        <br>{{char}} name is <b>${name}</b>. They are <b>${age}</b> years old with <b>${eyeColor}</b> eyes and <b>${hairColor} ${hairType}</b> hair.
+        <br>Their body type is <b>${bodyType}</b> with <b>${breastsType}</b> breasts and a <b>${buttType}</b> butt.
+        <br>{{char}} is a <b>${cleanPersonality}</b> person with traits such as <b>${selectedTrait.join(", ")}</b>.
+        <br>{{char}} ${selectedDescription.join(" ")}.
+        <br>{{char}} is your <b>${relationship}</b>, and they work as a <b>${job}</b>.
+        <br>In their free time, they enjoy <b>${cleanHobbies}</b>. Their preferred clothing style is <b>${clothing}</b>.
+    `;
+    
+    const output2 = `
+        {{char}} Name:<b>${name}</b><br><br>
+
+        {{char}} Brief:<br>
+        -<b>${cleanPersonality}</b><br><br>
+
+        {{char}} Parameters:<br>
+        -Age: <b>${age}</b><br>
+        -Head: <b>${eyeColor}</b> eyes and <b>${hairColor} ${hairType}</b> hair.<br>
+        -Body: <b>${bodyType}</b> with <b>${breastsType}</b> breasts and a <b>${buttType}</b> butt.<br>
+        {{char}} Personality:<br>
+        -Traits: <b>${selectedTrait.join(", ")}</b><br>
+        -Description: <b>${selectedDescription.join(" ")}</b><br><br>
+
+        {{char}} Interaction:<br>
+        -Relations: <b>${relationship}</b><br>
+        -Work: <b>${job}</b>.<br>
+        -Hobby: <b>${hobbies}</b><br>
+        -Clothing style: <b>${clothing}</b>.<br>
+    `;
+
+    document.getElementById('characterOutput1').innerHTML = output1;
+    document.getElementById('characterOutput2').innerHTML = output2;
+}
+
+// Initial calls to populate the output
+updateAllSections();
+updateTraitsAndDescription();
+updateOutput();
+
+    </script>
+</body>
+</html>
